@@ -3,6 +3,10 @@ one_liner: Run lightweight prompt regression checks from JSON fixtures.
 target_user: Prompt and LLM app engineers
 pain_point: Prompt changes need cheap regression checks before full eval suites.
 demo_command: PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json
+tier: flagship
+maturity_status: polished-2026-05-31
+next_release: v0.2.0
+polish_score: 89
 topics:
   - ai-tools
   - prompt-engineering

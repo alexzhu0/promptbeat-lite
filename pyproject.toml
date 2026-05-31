@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "promptbeat-lite"
-version = "0.1.0"
+version = "0.2.0"
 description = "Run lightweight prompt regression checks from JSON fixtures."
 readme = "README.md"
 requires-python = ">=3.9"

@@ -1,12 +1,18 @@
 # Promptbeat Lite
 
-Run lightweight prompt regression checks from JSON fixtures.
+Run local-first prompt and agent regression checks from JSON fixture files or suite folders.
+
+For prompt engineers and agent builders who want a tiny CI gate before adopting a heavier eval platform.
+
+```bash
+PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
+```
 
 ## Why
 
-Prompt changes need cheap regression checks before teams invest in a heavier eval platform.
+Prompt and agent instruction changes often regress behavior before anyone notices. Full eval platforms are valuable, but many teams need a small, inspectable first gate that runs in any repo.
 
-This is a flagship HighStar AI developer tool: dependency-light, local-first, and built around one quick command.
+Promptbeat Lite is dependency-light, local-first, and CI-friendly. It accepts hand-written fixtures, golden files, and cases mined by `eval-case-miner`.
 
 ## Install
 
@@ -19,7 +25,7 @@ PYTHONPATH=src python3 -m unittest discover -s tests
 ## Quickstart
 
 ```bash
-PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json --fail-under 100
+PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
 ```
 
 ## Examples
@@ -30,26 +36,47 @@ Human-readable output:
 PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json --fail-under 100
 ```
 
+Suite folder with golden files:
+
+```bash
+PYTHONPATH=src python3 -m promptbeat_lite examples/suite --fail-under 100
+```
+
 Machine-readable output:
 
 ```bash
 PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json --format json
 ```
 
+JUnit for CI:
+
+```bash
+PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
+```
+
 ## CLI Reference
 
 - `PYTHONPATH=src python3 -m promptbeat_lite --help`
-- Main demo: `PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json --fail-under 100`
+- Main demo: `PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100`
 - CI gate: `PYTHONPATH=src python3 -m unittest discover -s tests`
 
 ## Features
 
-- JSON fixture runner
+- JSON fixture file and directory runner
 - `must_contain`, `must_not_contain`, `must_equal`, and mined `expected` checks
+- Golden file checks with `golden_file`
+- Basic fixture schema validation
 - Pass-rate summary
 - JUnit output for CI systems
 - Threshold exit code with `--fail-under`
 - Compatible with eval-case-miner promptbeat output
+
+## GitHub Actions
+
+```yaml
+- name: Prompt regression
+  run: PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
+```
 
 ## API
 
@@ -63,7 +90,13 @@ Use the CLI first. Import the Python functions when you want to embed the same b
 
 ## Why Star This
 
-It gives prompt engineers a tiny regression runner that fits in any repo.
+Star this if you want prompt regression tests that are simple enough to inspect in a pull request.
+
+## Related Tools
+
+- Feed it with `eval-case-miner` when real failures should become fixtures.
+- Pair it with `prompt-drift-watch` to catch risky instruction edits before running the suite.
+- Attach `agent-trace-summarizer` output when a regression comes from an agent run.
 
 ## Roadmap
 

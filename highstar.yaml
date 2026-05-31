@@ -1,12 +1,12 @@
 name: promptbeat-lite
-one_liner: Run lightweight prompt regression checks from JSON fixtures.
-target_user: Prompt and LLM app engineers
-pain_point: Prompt changes need cheap regression checks before full eval suites.
-demo_command: PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json
+one_liner: Run local-first prompt and agent regression checks.
+target_user: Prompt engineers and AI agent builders
+pain_point: Prompt and agent changes need cheap regression checks before full eval suites.
+demo_command: PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
 tier: flagship
-maturity_status: polished-2026-05-31
-next_release: v0.2.0
-polish_score: 89
+maturity_status: trend-aligned-2026-05-31
+next_release: v0.2.1
+polish_score: 93
 topics:
   - ai-tools
   - prompt-engineering
@@ -14,13 +14,14 @@ topics:
   - testing
   - cli
   - llmops
+  - llm-evaluation
 release_channel:
   - github
   - relevant-developer-communities
 launch_copy:
-  - I built promptbeat-lite: Run lightweight prompt regression checks from JSON fixtures.
-  - The pain: Prompt changes need cheap regression checks before full eval suites.
-  - Try it with: PYTHONPATH=src python3 -m promptbeat_lite examples/cases.json
+  - I built promptbeat-lite for local-first prompt and agent regression checks.
+  - It runs JSON fixture files or suite folders with golden files, JUnit output, and CI thresholds.
+  - Try it with: PYTHONPATH=src python3 -m promptbeat_lite examples/suite --format junit --fail-under 100
 quality_gate:
   commands:
     - python3 -m unittest discover -s tests

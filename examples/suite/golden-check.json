@@ -1,0 +1,10 @@
+{
+  "cases": [
+    {
+      "id": "agent-debug-golden",
+      "output": "Use the failing trace, identify the slowest tool call, and attach the exact error message.",
+      "golden_file": "golden-answer.txt",
+      "tags": ["agent-debug", "golden"]
+    }
+  ]
+}

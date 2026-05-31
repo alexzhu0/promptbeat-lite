@@ -1,0 +1,11 @@
+{
+  "cases": [
+    {
+      "id": "support-answer-cites-source",
+      "output": "The fix is to rotate the key and cite the incident runbook.",
+      "must_contain": ["rotate the key", "runbook"],
+      "must_not_contain": ["ignore the alert"],
+      "tags": ["support", "safety"]
+    }
+  ]
+}

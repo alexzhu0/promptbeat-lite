@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
-from promptbeat_lite.cli import evaluate_case, format_junit, main, run_suite
+from promptbeat_lite.cli import evaluate_case, format_junit, load_cases, main, run_suite
 
 
 class PromptbeatLiteTests(unittest.TestCase):
@@ -59,6 +59,36 @@ class PromptbeatLiteTests(unittest.TestCase):
 
         self.assertEqual(summary["total"], 0)
         self.assertEqual(summary["pass_rate"], 100.0)
+
+    def test_directory_suite_loads_multiple_fixture_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.json").write_text(json.dumps({"cases": [{"id": "a", "output": "ok", "expected": "ok"}]}), encoding="utf-8")
+            (root / "nested").mkdir()
+            (root / "nested" / "b.json").write_text(json.dumps({"cases": [{"id": "b", "output": "safe", "must_not_contain": ["secret"]}]}), encoding="utf-8")
+
+            summary = run_suite(str(root))
+
+        self.assertEqual(summary["total"], 2)
+        self.assertEqual(summary["passed"], 2)
+
+    def test_golden_file_is_loaded_relative_to_fixture(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "golden.txt").write_text("exact answer\n", encoding="utf-8")
+            fixture = root / "cases.json"
+            fixture.write_text(json.dumps({"cases": [{"id": "golden", "output": "exact answer", "golden_file": "golden.txt"}]}), encoding="utf-8")
+
+            cases = load_cases(str(fixture))
+            result = evaluate_case(cases[0])
+
+        self.assertTrue(result["passed"])
+
+    def test_invalid_case_fails_with_schema_issue(self):
+        result = evaluate_case({"id": "invalid", "output": "anything"})
+
+        self.assertFalse(result["passed"])
+        self.assertIn("missing expectation rule", result["failures"])
 
 
 if __name__ == "__main__":

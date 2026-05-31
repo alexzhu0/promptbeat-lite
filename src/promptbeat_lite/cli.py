@@ -9,11 +9,44 @@ from pathlib import Path
 from typing import Any, Dict, List, Sequence
 
 
-def load_cases(path: str) -> List[Dict[str, Any]]:
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+def load_case_file(path: Path) -> List[Dict[str, Any]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(payload, dict):
         payload = payload.get("cases", [])
-    return [case for case in payload if isinstance(case, dict)]
+    cases = []
+    for case in payload:
+        if not isinstance(case, dict):
+            continue
+        item = dict(case)
+        item.setdefault("source", path.name)
+        golden_file = item.get("golden_file")
+        if golden_file and "must_equal" not in item:
+            item["must_equal"] = (path.parent / str(golden_file)).read_text(encoding="utf-8").rstrip()
+        cases.append(item)
+    return cases
+
+
+def load_cases(path: str) -> List[Dict[str, Any]]:
+    root = Path(path)
+    if root.is_dir():
+        cases: List[Dict[str, Any]] = []
+        for case_file in sorted(root.rglob("*.json")):
+            cases.extend(load_case_file(case_file))
+        return cases
+    return load_case_file(root)
+
+
+def validate_case(case: Dict[str, Any]) -> List[str]:
+    issues = []
+    if "output" not in case and "actual" not in case:
+        issues.append("missing output or actual field")
+    has_expectation = any(
+        key in case
+        for key in ("expected", "must_contain", "must_not_contain", "must_equal", "golden_file")
+    )
+    if not has_expectation:
+        issues.append("missing expectation rule")
+    return issues
 
 
 def evaluate_case(case: Dict[str, Any]) -> Dict[str, Any]:
@@ -23,7 +56,7 @@ def evaluate_case(case: Dict[str, Any]) -> Dict[str, Any]:
         must_contain.append(str(case["expected"]))
     must_not_contain = [str(item) for item in case.get("must_not_contain", [])]
     must_equal = case.get("must_equal")
-    failures = []
+    failures = validate_case(case)
     if must_equal is not None and output != str(must_equal):
         failures.append("not equal to expected golden output")
     for item in must_contain:
@@ -37,6 +70,7 @@ def evaluate_case(case: Dict[str, Any]) -> Dict[str, Any]:
         "passed": not failures,
         "failures": failures,
         "tags": case.get("tags", []),
+        "source": case.get("source", ""),
     }
 
 
@@ -46,6 +80,7 @@ def run_suite(path: str) -> Dict[str, Any]:
     total = len(results)
     pass_rate = round((passed / total) * 100, 2) if total else 100.0
     return {
+        "suite": str(path),
         "total": total,
         "passed": passed,
         "failed": total - passed,
@@ -56,6 +91,7 @@ def run_suite(path: str) -> Dict[str, Any]:
 
 def format_text(summary: Dict[str, Any]) -> str:
     lines = [
+        f"Suite: {summary['suite']}",
         f"Total: {summary['total']}",
         f"Passed: {summary['passed']}",
         f"Failed: {summary['failed']}",
@@ -94,7 +130,7 @@ def run(input_path: str, output_format: str = "text") -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run lightweight prompt regression checks from JSON fixtures.")
-    parser.add_argument("input", help="JSON fixtures file")
+    parser.add_argument("input", help="JSON fixtures file or directory")
     parser.add_argument("--format", choices=["text", "json", "junit"], default="text")
     parser.add_argument(
         "--fail-under",

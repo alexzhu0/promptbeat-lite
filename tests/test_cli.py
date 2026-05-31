@@ -44,6 +44,22 @@ class PromptbeatLiteTests(unittest.TestCase):
 
         self.assertEqual(code, 2)
 
+    def test_must_equal_detects_golden_mismatch(self):
+        result = evaluate_case({"id": "golden", "output": "actual", "must_equal": "expected"})
+
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["failures"], ["not equal to expected golden output"])
+
+    def test_empty_suite_has_full_pass_rate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cases.json"
+            path.write_text(json.dumps({"cases": []}), encoding="utf-8")
+
+            summary = run_suite(str(path))
+
+        self.assertEqual(summary["total"], 0)
+        self.assertEqual(summary["pass_rate"], 100.0)
+
 
 if __name__ == "__main__":
     unittest.main()
